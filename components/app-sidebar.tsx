@@ -24,6 +24,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { File, Folder, FolderCheck } from "lucide-react";
+import { useUser } from "@/hooks/useUser";
+import { useAuth } from "@clerk/nextjs";
 
 const data = {
   user: {
@@ -78,6 +80,9 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { userId } = useAuth();
+  const { user } = useUser(userId!);
+  console.log("user:", user);
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -91,7 +96,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className="flex size-5 items-center justify-center rounded bg-gradient-to-br bg-blue-500">
                   <IconActivity className="!size-3 text-white" />
                 </div>
-                <span className="text-base font-semibold">Log Tracker</span>
+                <span className="text-base font-semibold">Sensory</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -102,7 +107,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );

@@ -10,10 +10,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
-import { SignUpButton } from "@clerk/nextjs";
+import { SignUpButton, useUser } from "@clerk/nextjs";
 
 export function SiteHeader() {
   const { setTheme } = useTheme();
+  const { user } = useUser();
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -46,9 +47,11 @@ export function SiteHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <SignUpButton>
-            <Button className="bg-blue-500 text-white">Sign Up</Button>
-          </SignUpButton>
+          {!user && (
+            <SignUpButton>
+              <Button className="bg-blue-500 text-white">Sign Up</Button>
+            </SignUpButton>
+          )}
         </div>
       </div>
     </header>

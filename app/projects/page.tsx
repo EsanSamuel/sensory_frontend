@@ -1,26 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   IconAlertTriangle,
-  IconCalendar,
   IconChevronRight,
   IconCircleCheckFilled,
   IconClock,
+  IconCopy,
   IconDotsVertical,
+  IconKey,
   IconPlus,
-  IconTrendingDown,
-  IconTrendingUp,
-} from "@tabler/icons-react"
+  IconRefresh,
+  IconShieldCheck,
+} from "@tabler/icons-react";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -29,131 +30,117 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import Link from "next/link"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
+import { useProject } from "@/hooks/useProject";
+import { useUser } from "@clerk/nextjs";
+import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import axios from "axios";
 
 interface Project {
-  id: string
-  name: string
-  description: string
-  status: "active" | "paused" | "archived"
-  errorCount: number
-  warningCount: number
-  totalLogs: number
-  lastActivity: string
-  createdAt: string
-  trend: "up" | "down"
-  trendPercentage: number
+  _id: string;
+  project_id: string;
+  project_name: string;
+  description: string;
+  user_id: string;
+  api_key: string;
+  service: string;
+  log_counts: number;
+  created_at: string;
+  updated_at: string;
 }
 
-// Sample projects data
-const sampleProjects: Project[] = [
-  {
-    id: "1",
-    name: "Log Tracker",
-    description: "Main application logging and monitoring system",
-    status: "active",
-    errorCount: 12,
-    warningCount: 45,
-    totalLogs: 15234,
-    lastActivity: "2 minutes ago",
-    createdAt: "2024-01-15",
-    trend: "down",
-    trendPercentage: 12.5,
-  },
-  {
-    id: "2",
-    name: "Reddit Clone",
-    description: "Social media platform with real-time features",
-    status: "active",
-    errorCount: 3,
-    warningCount: 8,
-    totalLogs: 8456,
-    lastActivity: "15 minutes ago",
-    createdAt: "2024-02-20",
-    trend: "up",
-    trendPercentage: 8.3,
-  },
-  {
-    id: "3",
-    name: "E-commerce API",
-    description: "Backend services for online store",
-    status: "active",
-    errorCount: 23,
-    warningCount: 67,
-    totalLogs: 23456,
-    lastActivity: "1 hour ago",
-    createdAt: "2024-01-10",
-    trend: "up",
-    trendPercentage: 15.2,
-  },
-  {
-    id: "4",
-    name: "Payment Gateway",
-    description: "Secure payment processing system",
-    status: "paused",
-    errorCount: 0,
-    warningCount: 2,
-    totalLogs: 1234,
-    lastActivity: "3 days ago",
-    createdAt: "2023-12-05",
-    trend: "down",
-    trendPercentage: 45.0,
-  },
-]
-
 const Project = () => {
-  const [projects, setProjects] = useState<Project[]>(sampleProjects)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const { user } = useUser();
+  const { createProject, projects } = useProject("", user?.id);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [generatedApiKey, setGeneratedApiKey] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
   const [newProject, setNewProject] = useState({
     name: "",
     description: "",
-  })
+    service: "",
+  });
 
-  const handleCreateProject = () => {
-    const project: Project = {
-      id: String(projects.length + 1),
-      name: newProject.name,
+  const handleCreateProject = async () => {
+    const response = await createProject({
+      project_name: newProject.name,
       description: newProject.description,
-      status: "active",
-      errorCount: 0,
-      warningCount: 0,
-      totalLogs: 0,
-      lastActivity: "Just now",
-      createdAt: new Date().toISOString().split("T")[0],
-      trend: "up",
-      trendPercentage: 0,
+      user_id: user?.id!,
+    });
+    console.log("Project: ", response);
+    setNewProject({ name: "", description: "", service: "" });
+    setIsDialogOpen(false);
+  };
+
+  const handleGenerateApiKey = async (projectId: string) => {
+    if (!selectedProject) return;
+
+    setIsGenerating(true);
+    try {
+      const response = await axios.post(
+        ` http://localhost:8000/project/api_key/${projectId}  `,
+      );
+      console.log(response.data.apikey)
+      setGeneratedApiKey(response.data.apikey);
+
+      toast.success("API Key generated successfully");
+    } catch (error) {
+      toast.error("Failed to generate API key");
+    } finally {
+      setIsGenerating(false);
     }
+  };
 
-    setProjects([...projects, project])
-    setNewProject({ name: "", description: "" })
-    setIsDialogOpen(false)
-  }
+  const copyApiKey = (apiKey: string) => {
+    navigator.clipboard.writeText(apiKey);
+    toast.success("API Key copied to clipboard");
+  };
 
-  const getStatusBadge = (status: Project["status"]) => {
-    const variants = {
-      active: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30",
-      paused: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
-      archived: "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/30",
+  const openApiKeyDialog = (project: Project) => {
+    setSelectedProject(project);
+    setGeneratedApiKey("");
+    setIsApiKeyDialogOpen(true);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const diffInMins = Math.floor(diffInMs / 60000);
+    const diffInHours = Math.floor(diffInMs / 3600000);
+    const diffInDays = Math.floor(diffInMs / 86400000);
+
+    if (diffInMins < 60) {
+      return `${diffInMins} minute${diffInMins !== 1 ? "s" : ""} ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours !== 1 ? "s" : ""} ago`;
+    } else {
+      return `${diffInDays} day${diffInDays !== 1 ? "s" : ""} ago`;
     }
-
-    return (
-      <Badge variant="outline" className={variants[status]}>
-        {status === "active" && <IconCircleCheckFilled className="mr-1 size-3" />}
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </Badge>
-    )
-  }
+  };
 
   return (
     <div className="p-6 lg:p-10">
@@ -191,23 +178,34 @@ const Project = () => {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="project-service">Service (Optional)</Label>
+                <Input
+                  id="project-service"
+                  placeholder="e.g., API, Database, Auth"
+                  value={newProject.service}
+                  onChange={(e) =>
+                    setNewProject({ ...newProject, service: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="project-description">Description</Label>
                 <Textarea
                   id="project-description"
                   placeholder="Brief description of your project..."
                   value={newProject.description}
                   onChange={(e) =>
-                    setNewProject({ ...newProject, description: e.target.value })
+                    setNewProject({
+                      ...newProject,
+                      description: e.target.value,
+                    })
                   }
                   rows={3}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
               <Button
@@ -221,23 +219,32 @@ const Project = () => {
         </Dialog>
       </div>
 
+      {/* API Key Generation Modal */}
+
       {/* Projects Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {projects.map((project) => (
+        {projects?.map((project: Project) => (
           <Card
-            key={project.id}
+            key={project._id}
             className="group relative cursor-pointer transition-all hover:shadow-md"
           >
-            <Link href={`/projects/123`}>
             <CardHeader>
               <div className="mb-3 flex items-start justify-between">
                 <div className="flex-1">
                   <div className="mb-2 flex items-center gap-2">
-                    <CardTitle className="text-lg">{project.name}</CardTitle>
-                    {getStatusBadge(project.status)}
+                    <CardTitle className="text-lg">
+                      {project.project_name}
+                    </CardTitle>
+                    <Badge
+                      variant="outline"
+                      className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30"
+                    >
+                      <IconCircleCheckFilled className="mr-1 size-3" />
+                      Active
+                    </Badge>
                   </div>
                   <CardDescription className="line-clamp-2">
-                    {project.description}
+                    {project.description || "No description provided"}
                   </CardDescription>
                 </div>
                 <DropdownMenu>
@@ -246,21 +253,42 @@ const Project = () => {
                       variant="ghost"
                       size="icon"
                       className="size-8 opacity-0 transition-opacity group-hover:opacity-100"
+                      onClick={(e) => e.preventDefault()}
                     >
                       <IconDotsVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                      <IconChevronRight className="mr-2 size-4" />
-                      View Details
-                    </DropdownMenuItem>
+                    <Link href={`/projects/${project.project_id}`}>
+                      <DropdownMenuItem>
+                        <IconChevronRight className="mr-2 size-4" />
+                        View Details
+                      </DropdownMenuItem>
+                    </Link>
+                    {project.api_key && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.preventDefault();
+                          copyApiKey(project.api_key);
+                        }}
+                      >
+                        <IconCopy className="mr-2 size-4" />
+                        Copy API Key
+                      </DropdownMenuItem>
+                    )}
+                    {!project.api_key && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.preventDefault();
+                          openApiKeyDialog(project);
+                        }}
+                      >
+                        <IconKey className="mr-2 size-4" />
+                        Generate API Key
+                      </DropdownMenuItem>
+                    )}
+
                     <DropdownMenuItem>Edit Project</DropdownMenuItem>
-                    <DropdownMenuItem>
-                      {project.status === "active" ? "Pause" : "Resume"}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Archive</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem variant="destructive">
                       Delete
@@ -271,61 +299,193 @@ const Project = () => {
 
               {/* Stats */}
               <div className="space-y-3 border-t pt-3">
+                {/* Service Badge */}
+                {project.service && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      Service:
+                    </span>
+                    <Badge variant="secondary" className="text-xs">
+                      {project.service}
+                    </Badge>
+                  </div>
+                )}
+
+                {/* Log Count */}
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Total Logs</span>
                   <span className="font-mono font-semibold">
-                    {project.totalLogs.toLocaleString()}
+                    {project.log_counts.toLocaleString()}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <IconAlertTriangle className="size-4 text-red-500" />
-                    <span className="font-mono font-medium">
-                      {project.errorCount}
-                    </span>
-                    <span className="text-muted-foreground">errors</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <IconAlertTriangle className="size-4 text-amber-500" />
-                    <span className="font-mono font-medium">
-                      {project.warningCount}
-                    </span>
-                    <span className="text-muted-foreground">warnings</span>
-                  </div>
+                {/* API Key (masked) */}
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <IconKey className="size-3.5" />
+                    API Key
+                  </span>
+                  {project.api_key ? (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        copyApiKey(project.api_key);
+                      }}
+                      className="flex items-center gap-1.5 font-mono text-xs hover:text-foreground transition-colors"
+                    >
+                      <span>{project.api_key.slice(0, 12)}...****</span>
+                      <IconCopy className="size-3" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        openApiKeyDialog(project);
+                      }}
+                      className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors font-medium"
+                    >
+                      <IconKey className="size-3.5" />
+                      Generate
+                    </button>
+                  )}
                 </div>
 
+                {/* Timestamps */}
                 <div className="flex items-center justify-between border-t pt-3 text-xs">
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <IconClock className="size-3.5" />
-                    <span>{project.lastActivity}</span>
+                    <span>Updated {getTimeAgo(project.updated_at)}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    {project.trend === "up" ? (
-                      <>
-                        <IconTrendingUp className="size-3.5 text-red-500" />
-                        <span className="text-red-600 dark:text-red-400">
-                          +{project.trendPercentage}%
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <IconTrendingDown className="size-3.5 text-green-500" />
-                        <span className="text-green-600 dark:text-green-400">
-                          -{project.trendPercentage}%
-                        </span>
-                      </>
-                    )}
-                  </div>
+                  <span className="text-muted-foreground">
+                    {formatDate(project.created_at)}
+                  </span>
                 </div>
               </div>
             </CardHeader>
-            </Link>
+            <Dialog
+              open={isApiKeyDialogOpen}
+              onOpenChange={setIsApiKeyDialogOpen}
+            >
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <IconKey className="size-5" />
+                    Generate API Key
+                  </DialogTitle>
+                  <DialogDescription>
+                    Generate a new API key for {selectedProject?.project_name}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 py-4">
+                  {!generatedApiKey ? (
+                    <>
+                      <Alert>
+                        <IconShieldCheck className="size-4" />
+                        <AlertTitle>Important</AlertTitle>
+                        <AlertDescription>
+                          This API key will only be shown once. Make sure to
+                          copy and store it securely.
+                        </AlertDescription>
+                      </Alert>
+
+                      <div className="rounded-lg border bg-muted/50 p-4">
+                        <h4 className="mb-2 text-sm font-semibold">
+                          What you can do with this API key:
+                        </h4>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
+                          <li className="flex items-start gap-2">
+                            <span className="mt-0.5">•</span>
+                            <span>Send logs to your project</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="mt-0.5">•</span>
+                            <span>Authenticate API requests</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="mt-0.5">•</span>
+                            <span>Access project-specific data</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <Alert className="border-green-500/50 bg-green-500/10">
+                        <IconShieldCheck className="size-4 text-green-600 dark:text-green-400" />
+                        <AlertTitle className="text-green-600 dark:text-green-400">
+                          API Key Generated
+                        </AlertTitle>
+                        <AlertDescription className="text-green-600/80 dark:text-green-400/80">
+                          Your API key has been generated successfully. Copy it
+                          now.
+                        </AlertDescription>
+                      </Alert>
+
+                      <div className="space-y-2">
+                        <Label>Your API Key</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            value={generatedApiKey}
+                            readOnly
+                            className="font-mono text-sm"
+                          />
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={() => copyApiKey(generatedApiKey)}
+                          >
+                            <IconCopy className="size-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Make sure to copy this key now. You won't be able to
+                          see it again.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter>
+                  {!generatedApiKey ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsApiKeyDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => handleGenerateApiKey(project.project_id)}
+                        disabled={isGenerating}
+                      >
+                        {isGenerating ? (
+                          <>
+                            <IconRefresh className="size-4 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <IconKey className="size-4" />
+                            Generate Key
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button onClick={() => setIsApiKeyDialogOpen(false)}>
+                      Done
+                    </Button>
+                  )}
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </Card>
         ))}
 
         {/* Empty State */}
-        {projects.length === 0 && (
+        {projects?.length === 0 && (
           <div className="col-span-full flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-dashed">
             <div className="text-center">
               <h3 className="mb-2 text-lg font-semibold">No projects yet</h3>
@@ -342,7 +502,7 @@ const Project = () => {
       </div>
 
       {/* Summary Stats */}
-      {projects.length > 0 && (
+      {projects?.length > 0 && (
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
@@ -356,15 +516,7 @@ const Project = () => {
             <CardHeader className="pb-3">
               <CardDescription>Active Projects</CardDescription>
               <CardTitle className="text-2xl font-bold tabular-nums">
-                {projects.filter((p) => p.status === "active").length}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Total Errors</CardDescription>
-              <CardTitle className="text-2xl font-bold tabular-nums text-red-600 dark:text-red-400">
-                {projects.reduce((sum, p) => sum + p.errorCount, 0)}
+                {projects.length}
               </CardTitle>
             </CardHeader>
           </Card>
@@ -373,15 +525,29 @@ const Project = () => {
               <CardDescription>Total Logs</CardDescription>
               <CardTitle className="text-2xl font-bold tabular-nums">
                 {projects
-                  .reduce((sum, p) => sum + p.totalLogs, 0)
+                  .reduce((sum: number, p: Project) => sum + p.log_counts, 0)
                   .toLocaleString()}
+              </CardTitle>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardDescription>Services</CardDescription>
+              <CardTitle className="text-2xl font-bold tabular-nums">
+                {
+                  new Set(
+                    projects
+                      .filter((p: Project) => p.service)
+                      .map((p: Project) => p.service),
+                  ).size
+                }
               </CardTitle>
             </CardHeader>
           </Card>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Project
+export default Project;
