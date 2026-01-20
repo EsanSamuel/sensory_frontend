@@ -1,11 +1,15 @@
+"use client";
 import { LogDataTable } from "@/components/data-table";
-import { sampleLogs } from "@/components/log";
+import { useLog } from "@/hooks/useLog";
+import { useUser } from "@clerk/nextjs";
 import React from "react";
 
 const page = () => {
+  const { user } = useUser();
+  const { logs } = useLog(user?.id);
   return (
-    <div>
-      <LogDataTable data={sampleLogs} />
+    <div className="mt-5">
+      <LogDataTable data={logs} />
     </div>
   );
 };

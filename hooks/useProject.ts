@@ -15,11 +15,17 @@ export const useProject = (projectId?: string, userId?: string) => {
   });
   const projects = useQuery({
     queryKey: ["products", userId],
-    queryFn: () => projectApi.getProjects(userId),
+    queryFn: () => projectApi.getProjects(userId as string),
     enabled: !!userId,
+  });
+  const project = useQuery({
+    queryKey: ["product", projectId],
+    queryFn: () => projectApi.getProject(projectId as string),
+    enabled: !!projectId,
   });
   return {
     createProject: createProject.mutate,
     projects: projects.data,
+    project: project.data,
   };
 };

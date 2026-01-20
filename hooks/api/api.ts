@@ -44,4 +44,25 @@ export const projectApi = {
     console.log(response);
     return response.data;
   },
+  getProject: async (projectId: string) => {
+    const response = await axios.get(
+      `http://localhost:8000/project/${projectId}`,
+    );
+    console.log(response);
+    return response.data;
+  },
+};
+
+export const logApi = {
+  getLogs: async (userId: string) => {
+    const id = "clrk123";
+    const response = await axios.get(`http://localhost:8000/logs/${userId}`);
+    console.log(response);
+    return response.data;
+  },
+   getProjectLogs: async (projectId: string) => {
+    const response = await axios.get(`http://localhost:8000/logs/project/${projectId}`);
+    console.log(response);
+    return response.data;
+  },
 };

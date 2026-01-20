@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   closestCenter,
   DndContext,
@@ -11,15 +11,15 @@ import {
   useSensors,
   type DragEndEvent,
   type UniqueIdentifier,
-} from "@dnd-kit/core"
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
+} from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import {
   arrayMove,
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   IconAlertTriangle,
   IconChevronDown,
@@ -37,7 +37,7 @@ import {
   IconLayoutColumns,
   IconSearch,
   IconX,
-} from "@tabler/icons-react"
+} from "@tabler/icons-react";
 import {
   flexRender,
   getCoreRowModel,
@@ -52,14 +52,13 @@ import {
   type Row,
   type SortingState,
   type VisibilityState,
-} from "@tanstack/react-table"
-import { toast } from "sonner"
-import { z } from "zod"
+} from "@tanstack/react-table";
+import { toast } from "sonner";
 
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Drawer,
   DrawerClose,
@@ -69,7 +68,7 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer"
+} from "@/components/ui/drawer";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -77,17 +76,17 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -95,30 +94,43 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
+import axios from "axios";
 
-// Log entry schema
-export const logSchema = z.object({
-  id: z.string(),
-  level: z.enum(["INFO", "ERROR", "WARN", "DEBUG"]),
-  timestamp: z.string(),
-  project: z.string(),
-  service: z.string(),
-  message: z.string(),
-  runtime: z.object({
-    file: z.string(),
-    line: z.number(),
-    fn: z.string(),
-  }),
-})
+export interface Project {
+  _id: string;
+  project_id: string;
+  project_name: string;
+  description: string;
+  user_id: string;
+  api_key: string;
+  service: string;
+  log_counts: number;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+}
 
-export type LogEntry = z.infer<typeof logSchema>
+// Use the ILog interface
+export interface ILog {
+  _id: string;
+  level: "INFO" | "ERROR" | "WARN" | "DEBUG";
+  timestamp: string;
+  project: Project;
+  project_id: string;
+  service: string;
+  message: string;
+  runtime: {
+    file: string;
+    line: number;
+    fn: string;
+  };
+}
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
   const { attributes, listeners } = useSortable({
     id,
-  })
+  });
 
   return (
     <Button
@@ -131,38 +143,43 @@ function DragHandle({ id }: { id: string }) {
       <IconGripVertical className="text-muted-foreground size-3" />
       <span className="sr-only">Drag to reorder</span>
     </Button>
-  )
+  );
 }
 
 // Level badge component
-function LevelBadge({ level }: { level: LogEntry["level"] }) {
+function LevelBadge({ level }: { level: ILog["level"] }) {
   const variants = {
     INFO: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border-blue-500/30",
-    ERROR: "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 border-red-500/30",
+    ERROR:
+      "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400 border-red-500/30",
     WARN: "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border-amber-500/30",
-    DEBUG: "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 border-purple-500/30",
-  }
+    DEBUG:
+      "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 border-purple-500/30",
+  };
 
   const icons = {
     INFO: <IconInfoCircle className="size-3.5" />,
     ERROR: <IconAlertTriangle className="size-3.5" />,
     WARN: <IconAlertTriangle className="size-3.5" />,
     DEBUG: <IconCode className="size-3.5" />,
-  }
+  };
 
   return (
-    <Badge variant="outline" className={`${variants[level]} gap-1 px-2 py-0.5 font-mono text-xs font-semibold`}>
+    <Badge
+      variant="outline"
+      className={`${variants[level]} gap-1 px-2 py-0.5 font-mono text-xs font-semibold`}
+    >
       {icons[level]}
       {level}
     </Badge>
-  )
+  );
 }
 
-const columns: ColumnDef<LogEntry>[] = [
+const columns: ColumnDef<ILog>[] = [
   {
     id: "drag",
     header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original.id} />,
+    cell: ({ row }) => <DragHandle id={row.original._id} />,
     size: 40,
   },
   {
@@ -202,7 +219,7 @@ const columns: ColumnDef<LogEntry>[] = [
     accessorKey: "timestamp",
     header: "Timestamp",
     cell: ({ row }) => {
-      const date = new Date(row.original.timestamp)
+      const date = new Date(row.original.timestamp);
       const formattedDate = date.toLocaleString("en-US", {
         month: "short",
         day: "2-digit",
@@ -210,12 +227,12 @@ const columns: ColumnDef<LogEntry>[] = [
         minute: "2-digit",
         second: "2-digit",
         hour12: false,
-      })
+      });
       return (
         <div className="font-mono text-xs text-muted-foreground">
           {formattedDate}
         </div>
-      )
+      );
     },
     size: 160,
   },
@@ -223,7 +240,9 @@ const columns: ColumnDef<LogEntry>[] = [
     accessorKey: "project",
     header: "Project",
     cell: ({ row }) => (
-      <div className="text-sm font-medium">{row.original.project}</div>
+      <div className="text-sm font-medium">
+        {row.original.project.project_name}
+      </div>
     ),
     size: 120,
   },
@@ -241,7 +260,7 @@ const columns: ColumnDef<LogEntry>[] = [
     accessorKey: "message",
     header: "Message",
     cell: ({ row }) => {
-      return <LogMessageCell log={row.original} />
+      return <LogMessageCell log={row.original} />;
     },
     enableHiding: false,
     size: 400,
@@ -250,16 +269,19 @@ const columns: ColumnDef<LogEntry>[] = [
     accessorKey: "runtime.file",
     header: "File",
     cell: ({ row }) => {
-      const filePath = row.original.runtime.file
-      const fileName = filePath.split(/[/\\]/).pop() || filePath
+      const filePath = row.original.runtime.file;
+      const fileName = filePath.split(/[/\\]/).pop() || filePath;
       return (
         <div className="flex items-center gap-1.5">
           <IconFileCode className="size-3.5 text-muted-foreground" />
-          <span className="font-mono text-xs text-muted-foreground" title={filePath}>
+          <span
+            className="font-mono text-xs text-muted-foreground"
+            title={filePath}
+          >
             {fileName}
           </span>
         </div>
-      )
+      );
     },
     size: 200,
   },
@@ -289,8 +311,23 @@ const columns: ColumnDef<LogEntry>[] = [
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
           <DropdownMenuItem>View Details</DropdownMenuItem>
-          <DropdownMenuItem>Copy Message</DropdownMenuItem>
-          <DropdownMenuItem>Copy Stack Trace</DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              navigator.clipboard.writeText(row.original.message);
+              toast.success("Message copied to clipboard");
+            }}
+          >
+            Copy Message
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              const stackTrace = `File: ${row.original.runtime.file}\nLine: ${row.original.runtime.line}\nFunction: ${row.original.runtime.fn}`;
+              navigator.clipboard.writeText(stackTrace);
+              toast.success("Stack trace copied to clipboard");
+            }}
+          >
+            Copy Stack Trace
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Mark as Resolved</DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -300,12 +337,12 @@ const columns: ColumnDef<LogEntry>[] = [
     ),
     size: 60,
   },
-]
+];
 
-function DraggableRow({ row }: { row: Row<LogEntry> }) {
+function DraggableRow({ row }: { row: Row<ILog> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.id,
-  })
+    id: row.original._id,
+  });
 
   return (
     <TableRow
@@ -324,48 +361,57 @@ function DraggableRow({ row }: { row: Row<LogEntry> }) {
         </TableCell>
       ))}
     </TableRow>
-  )
+  );
 }
 
-export function LogDataTable({
-  data: initialData,
-}: {
-  data: LogEntry[]
-}) {
-  const [data, setData] = React.useState(() => initialData)
-  const [rowSelection, setRowSelection] = React.useState({})
+export function LogDataTable({ data: initialData }: { data: ILog[] }) {
+  const [data, setData] = React.useState(() => initialData);
+  const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+    React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
+    [],
+  );
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "timestamp", desc: true },
-  ])
+  ]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 25,
-  })
-  const [globalFilter, setGlobalFilter] = React.useState("")
-  const [levelFilter, setLevelFilter] = React.useState<string>("all")
+  });
+  const [globalFilter, setGlobalFilter] = React.useState("");
+  const [levelFilter, setLevelFilter] = React.useState<string>("all");
 
-  const sortableId = React.useId()
+  const sortableId = React.useId();
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  )
+    useSensor(KeyboardSensor, {}),
+  );
+
+  // Update data when initialData changes
+  React.useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ id }) => id) || [],
-    [data]
-  )
+    () => data?.map(({ _id }) => _id) || [],
+    [data],
+  );
 
   // Filter data by level
   const filteredData = React.useMemo(() => {
-    if (levelFilter === "all") return data
-    return data.filter((log) => log.level === levelFilter)
-  }, [data, levelFilter])
+    if (!data) return [];
+    if (levelFilter === "all") return data;
+    return data.filter((log) => log.level === levelFilter);
+  }, [data, levelFilter]);
+
+  const projectName = async (projectId: string) => {
+    const response = await axios.get(
+      `http://localhost:8000/project/${projectId}`,
+    );
+    return response.data.project_name;
+  };
 
   const table = useReactTable({
     data: filteredData,
@@ -378,7 +424,7 @@ export function LogDataTable({
       pagination,
       globalFilter,
     },
-    getRowId: (row) => row.id,
+    getRowId: (row) => row._id,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -393,32 +439,58 @@ export function LogDataTable({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     globalFilterFn: (row, columnId, filterValue) => {
-      const search = filterValue.toLowerCase()
-      const message = row.original.message.toLowerCase()
-      const file = row.original.runtime.file.toLowerCase()
-      const fn = row.original.runtime.fn.toLowerCase()
-      return message.includes(search) || file.includes(search) || fn.includes(search)
+      const search = filterValue.toLowerCase();
+      const message = row.original.message.toLowerCase();
+      const file = row.original.runtime.file.toLowerCase();
+      const fn = row.original.runtime.fn.toLowerCase();
+      const project = row.original.project.project_name.toLowerCase();
+      const service = row.original.service?.toLowerCase() || "";
+      return (
+        message.includes(search) ||
+        file.includes(search) ||
+        fn.includes(search) ||
+        project.includes(search) ||
+        service.includes(search)
+      );
     },
-  })
+  });
 
   function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
+    const { active, over } = event;
     if (active && over && active.id !== over.id) {
       setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id)
-        const newIndex = dataIds.indexOf(over.id)
-        return arrayMove(data, oldIndex, newIndex)
-      })
+        const oldIndex = dataIds.indexOf(active.id);
+        const newIndex = dataIds.indexOf(over.id);
+        return arrayMove(data, oldIndex, newIndex);
+      });
     }
   }
 
   // Calculate log level counts
   const levelCounts = React.useMemo(() => {
-    return data.reduce((acc, log) => {
-      acc[log.level] = (acc[log.level] || 0) + 1
-      return acc
-    }, {} as Record<string, number>)
-  }, [data])
+    if (!data) return {} as Record<string, number>;
+    return data.reduce(
+      (acc, log) => {
+        acc[log.level] = (acc[log.level] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+  }, [data]);
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex min-h-[400px] w-full items-center justify-center rounded-lg border-2 border-dashed p-8">
+        <div className="text-center">
+          <IconInfoCircle className="mx-auto mb-4 size-12 text-muted-foreground" />
+          <h3 className="mb-2 text-lg font-semibold">No logs available</h3>
+          <p className="text-sm text-muted-foreground">
+            Start sending logs to see them appear here
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -459,7 +531,7 @@ export function LogDataTable({
                   .filter(
                     (column) =>
                       typeof column.accessorFn !== "undefined" &&
-                      column.getCanHide()
+                      column.getCanHide(),
                   )
                   .map((column) => {
                     return (
@@ -473,7 +545,7 @@ export function LogDataTable({
                       >
                         {column.id}
                       </DropdownMenuCheckboxItem>
-                    )
+                    );
                   })}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -535,10 +607,10 @@ export function LogDataTable({
                             ? null
                             : flexRender(
                                 header.column.columnDef.header,
-                                header.getContext()
+                                header.getContext(),
                               )}
                         </TableHead>
-                      )
+                      );
                     })}
                   </TableRow>
                 ))}
@@ -559,7 +631,7 @@ export function LogDataTable({
                       colSpan={columns.length}
                       className="h-24 text-center"
                     >
-                      No logs found.
+                      No logs found matching your filters.
                     </TableCell>
                   </TableRow>
                 )}
@@ -582,7 +654,7 @@ export function LogDataTable({
               <Select
                 value={`${table.getState().pagination.pageSize}`}
                 onValueChange={(value) => {
-                  table.setPageSize(Number(value))
+                  table.setPageSize(Number(value));
                 }}
               >
                 <SelectTrigger size="sm" className="w-20" id="rows-per-page">
@@ -648,27 +720,30 @@ export function LogDataTable({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-function LogMessageCell({ log }: { log: LogEntry }) {
-  const isMobile = useIsMobile()
-  const [isExpanded, setIsExpanded] = React.useState(false)
-  
-  const messagePreview = log.message.length > 100 
-    ? log.message.slice(0, 100) + "..." 
-    : log.message
+function LogMessageCell({ log }: { log: ILog }) {
+  const isMobile = useIsMobile();
+  const projectName = async () => {
+    const response = await axios.get(
+      `http://localhost:8000/project/${log.project_id}`,
+    );
+    console.log(response.data.project_name);
+    return response.data.project_name;
+  };
+
+  const messagePreview =
+    log.message.length > 100 ? log.message.slice(0, 100) + "..." : log.message;
 
   return (
     <Drawer direction={isMobile ? "bottom" : "right"}>
       <DrawerTrigger asChild>
-        <Button 
-          variant="link" 
+        <Button
+          variant="link"
           className="text-foreground h-auto w-full justify-start px-0 text-left font-normal"
         >
-          <div className="line-clamp-2 text-sm">
-            {messagePreview}
-          </div>
+          <div className="line-clamp-2 text-sm">{messagePreview}</div>
         </Button>
       </DrawerTrigger>
       <DrawerContent className="max-h-[85vh]">
@@ -701,7 +776,9 @@ function LogMessageCell({ log }: { log: LogEntry }) {
                 <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Project
                 </Label>
-                <p className="mt-1.5 text-sm font-medium">{log.project}</p>
+                <p className="mt-1.5 text-sm font-medium">
+                  {log.project.project_name}
+                </p>
               </div>
               <div>
                 <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -726,7 +803,9 @@ function LogMessageCell({ log }: { log: LogEntry }) {
                     <p className="text-xs font-semibold text-muted-foreground">
                       File
                     </p>
-                    <p className="break-all font-mono text-xs">{log.runtime.file}</p>
+                    <p className="break-all font-mono text-xs">
+                      {log.runtime.file}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
@@ -735,7 +814,9 @@ function LogMessageCell({ log }: { log: LogEntry }) {
                     <p className="text-xs font-semibold text-muted-foreground">
                       Function
                     </p>
-                    <p className="break-all font-mono text-xs">{log.runtime.fn}</p>
+                    <p className="break-all font-mono text-xs">
+                      {log.runtime.fn}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
@@ -754,8 +835,8 @@ function LogMessageCell({ log }: { log: LogEntry }) {
         <DrawerFooter>
           <Button
             onClick={() => {
-              navigator.clipboard.writeText(log.message)
-              toast.success("Message copied to clipboard")
+              navigator.clipboard.writeText(log.message);
+              toast.success("Message copied to clipboard");
             }}
           >
             Copy Message
@@ -766,5 +847,5 @@ function LogMessageCell({ log }: { log: LogEntry }) {
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
-  )
+  );
 }

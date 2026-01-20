@@ -5,9 +5,9 @@ import {
   IconInfoCircle,
   IconTrendingDown,
   IconTrendingUp,
-} from "@tabler/icons-react"
+} from "@tabler/icons-react";
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardAction,
@@ -15,45 +15,121 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { type LogEntry } from "./data-table"
+} from "@/components/ui/card";
 
-interface LogStatsCardsProps {
-  logs: LogEntry[]
-  previousPeriodLogs?: LogEntry[] // For comparison
+export interface Project {
+  _id: string;
+  project_id: string;
+  project_name: string;
+  description: string;
+  user_id: string;
+  api_key: string;
+  service: string;
+  log_counts: number;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
 }
 
-export function LogStatsCards({ logs, previousPeriodLogs }: LogStatsCardsProps) {
-  // Calculate current period stats
-  const totalLogs = logs.length
-  const errorCount = logs.filter((log) => log.level === "ERROR").length
-  const warningCount = logs.filter((log) => log.level === "WARN").length
-  const infoCount = logs.filter((log) => log.level === "INFO").length
-  const debugCount = logs.filter((log) => log.level === "DEBUG").length
+// Use the ILog interface
+export interface ILog {
+  _id: string;
+  level: "INFO" | "ERROR" | "WARN" | "DEBUG";
+  timestamp: string;
+  project: Project;
+  project_id: string;
+  service: string;
+  message: string;
+  runtime: {
+    file: string;
+    line: number;
+    fn: string;
+  };
+}
 
-  // Calculate error rate
-  const errorRate = totalLogs > 0 ? ((errorCount / totalLogs) * 100).toFixed(1) : "0.0"
+interface LogStatsCardsProps {
+  logs?: ILog[]; // Make optional
+  previousPeriodLogs?: ILog[]; // Already optional
+}
+
+export function LogStatsCards({
+  logs = [], // Default to empty array
+  previousPeriodLogs,
+}: LogStatsCardsProps) {
+  // Safety check: ensure logs is an array
+  const safeLogs = Array.isArray(logs) ? logs : [];
+  const safePreviousLogs = Array.isArray(previousPeriodLogs)
+    ? previousPeriodLogs
+    : [];
+
+  // Calculate current period stats with safe array operations
+  const totalLogs = safeLogs.length;
+  const errorCount = safeLogs.filter((log) => log?.level === "ERROR").length;
+  const warningCount = safeLogs.filter((log) => log?.level === "WARN").length;
+  const infoCount = safeLogs.filter((log) => log?.level === "INFO").length;
+  const debugCount = safeLogs.filter((log) => log?.level === "DEBUG").length;
+
+  // Calculate error rate with safety checks
+  const errorRate =
+    totalLogs > 0 ? ((errorCount / totalLogs) * 100).toFixed(1) : "0.0";
 
   // Calculate trends if previous period data is available
   const calculateTrend = (current: number, previous?: number) => {
-    if (!previous || previous === 0) return { percentage: 0, isUp: false }
-    const change = ((current - previous) / previous) * 100
+    // Safety checks
+    if (typeof current !== "number" || isNaN(current)) {
+      return { percentage: "0", isUp: false };
+    }
+    if (!previous || previous === 0 || typeof previous !== "number") {
+      return { percentage: "0", isUp: false };
+    }
+
+    const change = ((current - previous) / previous) * 100;
     return {
       percentage: Math.abs(change).toFixed(1),
       isUp: change > 0,
-    }
-  }
+    };
+  };
 
-  const prevErrorCount = previousPeriodLogs?.filter((log) => log.level === "ERROR").length
-  const prevWarningCount = previousPeriodLogs?.filter((log) => log.level === "WARN").length
-  const prevTotalLogs = previousPeriodLogs?.length
+  // Calculate previous period stats with safety checks
+  const prevErrorCount = safePreviousLogs.filter(
+    (log) => log?.level === "ERROR",
+  ).length;
+  const prevWarningCount = safePreviousLogs.filter(
+    (log) => log?.level === "WARN",
+  ).length;
+  const prevTotalLogs = safePreviousLogs.length;
 
-  const errorTrend = calculateTrend(errorCount, prevErrorCount)
-  const warningTrend = calculateTrend(warningCount, prevWarningCount)
-  const totalLogsTrend = calculateTrend(totalLogs, prevTotalLogs)
+  const errorTrend = calculateTrend(errorCount, prevErrorCount);
+  const warningTrend = calculateTrend(warningCount, prevWarningCount);
+  const totalLogsTrend = calculateTrend(totalLogs, prevTotalLogs);
 
   // Calculate average errors per hour (assuming logs span 24 hours)
-  const avgErrorsPerHour = (errorCount / 24).toFixed(1)
+  const avgErrorsPerHour = totalLogs > 0 ? (errorCount / 24).toFixed(1) : "0.0";
+
+  // Parse error rate safely
+  const errorRateValue = parseFloat(errorRate) || 0;
+
+  // Show empty state if no logs
+  if (totalLogs === 0) {
+    return (
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+        {["Total Logs", "Error Events", "Warning Events", "Error Rate"].map(
+          (title) => (
+            <Card key={title} className="@container/card">
+              <CardHeader>
+                <CardDescription>{title}</CardDescription>
+                <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                  0
+                </CardTitle>
+              </CardHeader>
+              <CardFooter className="flex-col items-start gap-1.5 text-sm">
+                <div className="text-muted-foreground">No data available</div>
+              </CardFooter>
+            </Card>
+          ),
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
@@ -65,9 +141,13 @@ export function LogStatsCards({ logs, previousPeriodLogs }: LogStatsCardsProps) 
             {totalLogs.toLocaleString()}
           </CardTitle>
           <CardAction>
-            {previousPeriodLogs && (
+            {safePreviousLogs.length > 0 && (
               <Badge variant="outline">
-                {totalLogsTrend.isUp ? <IconTrendingUp /> : <IconTrendingDown />}
+                {totalLogsTrend.isUp ? (
+                  <IconTrendingUp />
+                ) : (
+                  <IconTrendingDown />
+                )}
                 {totalLogsTrend.isUp ? "+" : "-"}
                 {totalLogsTrend.percentage}%
               </Badge>
@@ -77,7 +157,8 @@ export function LogStatsCards({ logs, previousPeriodLogs }: LogStatsCardsProps) 
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
             <IconFileText className="size-4" />
-            {infoCount.toLocaleString()} INFO · {debugCount.toLocaleString()} DEBUG
+            {infoCount.toLocaleString()} INFO · {debugCount.toLocaleString()}{" "}
+            DEBUG
           </div>
           <div className="text-muted-foreground">
             Activity over the last 24 hours
@@ -93,10 +174,14 @@ export function LogStatsCards({ logs, previousPeriodLogs }: LogStatsCardsProps) 
             {errorCount.toLocaleString()}
           </CardTitle>
           <CardAction>
-            {previousPeriodLogs && (
-              <Badge 
+            {safePreviousLogs.length > 0 && (
+              <Badge
                 variant="outline"
-                className={errorTrend.isUp ? "border-red-500/30 text-red-600 dark:text-red-400" : ""}
+                className={
+                  errorTrend.isUp
+                    ? "border-red-500/30 text-red-600 dark:text-red-400"
+                    : ""
+                }
               >
                 {errorTrend.isUp ? <IconTrendingUp /> : <IconTrendingDown />}
                 {errorTrend.isUp ? "+" : "-"}
@@ -106,17 +191,26 @@ export function LogStatsCards({ logs, previousPeriodLogs }: LogStatsCardsProps) 
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {errorTrend.isUp ? (
-              <>
-                Error rate increased <IconTrendingUp className="size-4 text-red-500" />
-              </>
-            ) : (
-              <>
-                Error rate decreased <IconTrendingDown className="size-4 text-green-500" />
-              </>
-            )}
-          </div>
+          {safePreviousLogs.length > 0 ? (
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              {errorTrend.isUp ? (
+                <>
+                  Error rate increased{" "}
+                  <IconTrendingUp className="size-4 text-red-500" />
+                </>
+              ) : (
+                <>
+                  Error rate decreased{" "}
+                  <IconTrendingDown className="size-4 text-green-500" />
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              <IconAlertTriangle className="size-4" />
+              {errorCount === 0 ? "No errors" : `${errorCount} total errors`}
+            </div>
+          )}
           <div className="text-muted-foreground">
             {avgErrorsPerHour} errors/hour average
           </div>
@@ -131,10 +225,14 @@ export function LogStatsCards({ logs, previousPeriodLogs }: LogStatsCardsProps) 
             {warningCount.toLocaleString()}
           </CardTitle>
           <CardAction>
-            {previousPeriodLogs && (
-              <Badge 
+            {safePreviousLogs.length > 0 && (
+              <Badge
                 variant="outline"
-                className={warningTrend.isUp ? "border-amber-500/30 text-amber-600 dark:text-amber-400" : ""}
+                className={
+                  warningTrend.isUp
+                    ? "border-amber-500/30 text-amber-600 dark:text-amber-400"
+                    : ""
+                }
               >
                 {warningTrend.isUp ? <IconTrendingUp /> : <IconTrendingDown />}
                 {warningTrend.isUp ? "+" : "-"}
@@ -144,17 +242,28 @@ export function LogStatsCards({ logs, previousPeriodLogs }: LogStatsCardsProps) 
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {warningTrend.isUp ? (
-              <>
-                Warnings increased <IconAlertTriangle className="size-4 text-amber-500" />
-              </>
-            ) : (
-              <>
-                Warnings decreased <IconAlertTriangle className="size-4 text-green-500" />
-              </>
-            )}
-          </div>
+          {safePreviousLogs.length > 0 ? (
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              {warningTrend.isUp ? (
+                <>
+                  Warnings increased{" "}
+                  <IconAlertTriangle className="size-4 text-amber-500" />
+                </>
+              ) : (
+                <>
+                  Warnings decreased{" "}
+                  <IconAlertTriangle className="size-4 text-green-500" />
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="line-clamp-1 flex gap-2 font-medium">
+              <IconAlertTriangle className="size-4" />
+              {warningCount === 0
+                ? "No warnings"
+                : `${warningCount} total warnings`}
+            </div>
+          )}
           <div className="text-muted-foreground">
             {warningCount > 0 ? "Requires attention" : "System stable"}
           </div>
@@ -169,46 +278,51 @@ export function LogStatsCards({ logs, previousPeriodLogs }: LogStatsCardsProps) 
             {errorRate}%
           </CardTitle>
           <CardAction>
-            <Badge 
+            <Badge
               variant="outline"
               className={
-                parseFloat(errorRate) > 5 
-                  ? "border-red-500/30 text-red-600 dark:text-red-400" 
-                  : parseFloat(errorRate) > 2
-                  ? "border-amber-500/30 text-amber-600 dark:text-amber-400"
-                  : "border-green-500/30 text-green-600 dark:text-green-400"
+                errorRateValue > 5
+                  ? "border-red-500/30 text-red-600 dark:text-red-400"
+                  : errorRateValue > 2
+                    ? "border-amber-500/30 text-amber-600 dark:text-amber-400"
+                    : "border-green-500/30 text-green-600 dark:text-green-400"
               }
             >
-              {parseFloat(errorRate) > 5 ? (
+              {errorRateValue > 5 ? (
                 <IconAlertTriangle className="size-3.5" />
               ) : (
                 <IconInfoCircle className="size-3.5" />
               )}
-              {parseFloat(errorRate) > 5 ? "Critical" : parseFloat(errorRate) > 2 ? "Warning" : "Healthy"}
+              {errorRateValue > 5
+                ? "Critical"
+                : errorRateValue > 2
+                  ? "Warning"
+                  : "Healthy"}
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            {parseFloat(errorRate) < 2 ? (
+            {errorRateValue < 2 ? (
               <>
-                System health excellent <IconTrendingUp className="size-4 text-green-500" />
+                System health excellent{" "}
+                <IconTrendingUp className="size-4 text-green-500" />
               </>
-            ) : parseFloat(errorRate) < 5 ? (
+            ) : errorRateValue < 5 ? (
               <>
-                Monitoring recommended <IconAlertTriangle className="size-4 text-amber-500" />
+                Monitoring recommended{" "}
+                <IconAlertTriangle className="size-4 text-amber-500" />
               </>
             ) : (
               <>
-                Immediate attention needed <IconAlertTriangle className="size-4 text-red-500" />
+                Immediate attention needed{" "}
+                <IconAlertTriangle className="size-4 text-red-500" />
               </>
             )}
           </div>
-          <div className="text-muted-foreground">
-            Target: &lt;2% error rate
-          </div>
+          <div className="text-muted-foreground">Target: &lt;2% error rate</div>
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
