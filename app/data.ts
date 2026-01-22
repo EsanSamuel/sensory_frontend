@@ -1,6 +1,6 @@
-import { LogEntry } from "@/components/data-table";
 
-export const currentPeriodLogs: LogEntry[] = [
+
+export const currentPeriodLogs = [
   {
     id: "1",
     level: "INFO",
@@ -143,7 +143,7 @@ export const currentPeriodLogs: LogEntry[] = [
 ];
 
 // Previous period logs for comparison (with fewer errors to show improvement)
-export const previousPeriodLogs: LogEntry[] = [
+export const previousPeriodLogs = [
   {
     id: "p1",
     level: "INFO",

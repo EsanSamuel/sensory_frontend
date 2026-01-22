@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { AppSidebar } from "@/components/app-sidebar";
 import { LogActivityChart } from "@/components/chart-area-interactive";
 import { LogDataTable } from "@/components/data-table";
@@ -27,17 +27,14 @@ export interface ILog {
 export default function Page() {
   const { user } = useUser();
   const { logs } = useLog(user?.id);
-  console.log("logs:",logs)
+  console.log("logs:", logs);
   return (
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-          <LogStatsCards
-            logs={logs}
-            previousPeriodLogs={previousPeriodLogs}
-          />
+          <LogStatsCards logs={logs} />
           <div className="px-4 lg:px-6">
-            <LogActivityChart logs={logs}/>
+            <LogActivityChart logs={logs} />
           </div>
           <LogDataTable data={logs} />
         </div>

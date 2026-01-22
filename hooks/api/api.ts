@@ -13,41 +13,40 @@ interface IProject {
   user_id: string;
 }
 
+export const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 export const userApi = {
   createUser: async (userData: IUser) => {
-    const response = await axios.post("http://localhost:8000/register", {
+    const response = await api.post("/register", {
       userData,
     });
     return response;
   },
   getUser: async (userId: string) => {
-    const response = await axios.get(`http://localhost:8000/user/${userId}`);
+    const response = await api.get(`/user/${userId}`);
     return response.data.user;
   },
 };
 
 export const projectApi = {
   createProject: async (projectData: IProject) => {
-    const response = await axios.post(
-      "http://localhost:8000/project",
-
-      projectData,
-
-      { headers: { "Content-Type": "application/json" } },
-    );
+    const response = await api.post("/project", projectData, {
+      headers: { "Content-Type": "application/json" },
+    });
     return response;
   },
   getProjects: async (userId: string) => {
-    const response = await axios.get(
-      `http://localhost:8000/projects/${userId}`,
-    );
+    const response = await api.get(`/projects/${userId}`);
     console.log(response);
     return response.data;
   },
   getProject: async (projectId: string) => {
-    const response = await axios.get(
-      `http://localhost:8000/project/${projectId}`,
-    );
+    const response = await api.get(`/project/${projectId}`);
     console.log(response);
     return response.data;
   },
@@ -56,12 +55,12 @@ export const projectApi = {
 export const logApi = {
   getLogs: async (userId: string) => {
     const id = "clrk123";
-    const response = await axios.get(`http://localhost:8000/logs/${userId}`);
+    const response = await api.get(`/logs/${userId}`);
     console.log(response);
     return response.data;
   },
-   getProjectLogs: async (projectId: string) => {
-    const response = await axios.get(`http://localhost:8000/logs/project/${projectId}`);
+  getProjectLogs: async (projectId: string) => {
+    const response = await api.get(`/logs/project/${projectId}`);
     console.log(response);
     return response.data;
   },

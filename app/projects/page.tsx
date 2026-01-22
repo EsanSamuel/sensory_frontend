@@ -47,6 +47,7 @@ import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import axios from "axios";
+import { api } from "@/hooks/api/api";
 
 interface Project {
   _id: string;
@@ -91,10 +92,8 @@ const Project = () => {
 
     setIsGenerating(true);
     try {
-      const response = await axios.post(
-        ` http://localhost:8000/project/api_key/${projectId}  `,
-      );
-      console.log(response.data.apikey)
+      const response = await api.post(` /project/api_key/${projectId}  `);
+      console.log(response.data.apikey);
       setGeneratedApiKey(response.data.apikey);
 
       toast.success("API Key generated successfully");

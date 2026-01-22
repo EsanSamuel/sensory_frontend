@@ -1,8 +1,9 @@
+import { api } from "@/hooks/api/api";
 import { useUser } from "@/hooks/useUser";
 import { auth, clerkClient, Client } from "@clerk/nextjs/server";
 import axios from "axios";
 import { error } from "console";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import React from "react";
 
 const Sync = async () => {
@@ -17,7 +18,7 @@ const Sync = async () => {
     return notFound();
   }
 
-    console.log((await user).username, (await user).emailAddresses);
+  console.log((await user).username, (await user).emailAddresses);
   const data = {
     username: (await user).fullName,
     user_id: (await user).id,
@@ -25,9 +26,11 @@ const Sync = async () => {
     avatar: (await user).imageUrl,
   };
 
-  const response = await axios.post("http:localhost:8000/register", data);
+  const response = await api.post("/register", data);
   console.log(response);
-
+  if (response.status === 201) {
+    redirect("/");
+  }
 };
 
 export default Sync;
