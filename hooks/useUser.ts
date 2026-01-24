@@ -11,11 +11,11 @@ interface IUser {
 
 export const useUser = (userId?: string) => {
   const createUser = useMutation({
-    mutationFn: (userData: IUser) => userApi.createUser(userData),
+    mutationFn: (userData: IUser) => userApi.createUser(userData as any),
   });
   const user = useQuery({
     queryKey: ["jobs", userId],
-    queryFn: () => userApi.getUser(userId),
+    queryFn: () => userApi.getUser(userId as any),
     enabled: !!userId,
   });
   return {
