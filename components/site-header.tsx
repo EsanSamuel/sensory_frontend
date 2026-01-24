@@ -66,7 +66,7 @@ export function SiteHeader() {
 
           {!user && (
             <SignUpButton>
-              <Button className="bg-blue-500 text-white">Sign Up</Button>
+              <Button className="">Sign Up</Button>
             </SignUpButton>
           )}
         </div>
