@@ -185,7 +185,7 @@ export function LogActivityChart({ logs }: LogActivityChartProps) {
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardTitle>Log Activity</CardTitle>
+        <CardTitle className="">Log Activity</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:block">
             {totalLogsInPeriod.toLocaleString()} logs in {timeRangeDescription}
@@ -195,13 +195,13 @@ export function LogActivityChart({ logs }: LogActivityChartProps) {
           </span>
         </CardDescription>
         <CardAction>
-          <div className="flex items-center gap-2">
+          <div className="flex xl:flex-row flex-col items-center gap-2">
             {/* View Mode Toggle */}
             <Select value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
               <SelectTrigger className="w-32" size="sm">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="">
                 <SelectItem value="total">Total</SelectItem>
                 <SelectItem value="levels">By Level</SelectItem>
               </SelectContent>
