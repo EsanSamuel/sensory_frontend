@@ -480,13 +480,15 @@ export function LogDataTable({ data: initialData }: { data: ILog[] }) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex min-h-[400px] w-full items-center justify-center rounded-lg border-2 border-dashed p-8">
-        <div className="text-center">
-          <IconInfoCircle className="mx-auto mb-4 size-12 text-muted-foreground" />
-          <h3 className="mb-2 text-lg font-semibold">No logs available</h3>
-          <p className="text-sm text-muted-foreground">
-            Start sending logs to see them appear here
-          </p>
+      <div className="p-5">
+        <div className="flex min-h-[400px] w-full items-center justify-center rounded-lg border-2 border-dashed p-8">
+          <div className="text-center">
+            <IconInfoCircle className="mx-auto mb-4 size-12 text-muted-foreground" />
+            <h3 className="mb-2 text-lg font-semibold">No logs available</h3>
+            <p className="text-sm text-muted-foreground">
+              Start sending logs to see them appear here
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -503,7 +505,7 @@ export function LogDataTable({ data: initialData }: { data: ILog[] }) {
               placeholder="Search logs by message, file, or function..."
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
-              className="pl-9"
+              className="pl-9 text-[11px] xl:text-md"
             />
             {globalFilter && (
               <Button
@@ -597,7 +599,6 @@ export function LogDataTable({ data: initialData }: { data: ILog[] }) {
             id={sortableId}
           >
             <Table>
-            
               <TableHeader className="bg-muted sticky top-0 z-10">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
