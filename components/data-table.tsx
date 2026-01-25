@@ -505,7 +505,7 @@ export function LogDataTable({ data: initialData }: { data: ILog[] }) {
               placeholder="Search logs by message, file, or function..."
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
-              className="pl-9 text-[11px] xl:text-md"
+              className="pl-9 text-[12px] xl:text-md"
             />
             {globalFilter && (
               <Button
