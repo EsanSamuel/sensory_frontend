@@ -90,7 +90,7 @@ logger.FATAL("Unexpected system crash")`
               <strong className="text-foreground">Continuous Listening:</strong> As JSON log entries arrive, the server parses them in real-time.
             </li>
             <li>
-              <strong className="text-foreground">Authentication & Verification:</strong> The server cross-references the API key attached to the log against the MongoDB database, securely mapping the incoming data to the correct Project and User.
+              <strong className="text-foreground">Authentication & Verification:</strong> The server cross-references the API key attached to the log against the database, securely mapping the incoming data to the correct Project and User.
             </li>
             <li>
               <strong className="text-foreground">Intelligent Deduplication:</strong> To protect against log spam (such as an infinite loop rapidly firing the exact same error), Sensory incorporates smart deduplication logic. It checks for duplicate occurrences of identical messages and timestamps within the same project to keep your logs clean and manageable.
