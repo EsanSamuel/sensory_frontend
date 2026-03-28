@@ -111,7 +111,7 @@ logger.FATAL("Unexpected system crash")`
           </p>
           <ul className="space-y-4 text-muted-foreground">
             <li>
-              <strong className="text-foreground">Secure Storage:</strong> The entry is firmly persisted in the database (MongoDB), fully indexed and ready for deep search and analytics.
+              <strong className="text-foreground">Secure Storage:</strong> The entry is firmly persisted in the database, fully indexed and ready for deep search and analytics.
             </li>
             <li>
               <strong className="text-foreground">Live Metrics:</strong> The system instantly increments your project's <code>log_counts</code>, providing real-time telemetry back to the main dashboard.
