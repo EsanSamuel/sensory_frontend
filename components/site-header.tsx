@@ -9,9 +9,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Search } from "lucide-react";
 import { SignUpButton, useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export function SiteHeader() {
   const { setTheme } = useTheme();
@@ -19,18 +20,51 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   const header = () => {
-    switch (pathname) {
-      case "/":
+    switch (true) {
+      case pathname === "/":
         return "Dashboard";
-      case "/logs":
+      case pathname === "/logs":
         return "Logs";
-      case "/projects":
+      case pathname === "/projects":
         return "Projects";
-      case "/analytics":
+      case pathname.startsWith("/projects/"):
+        return "Projects";
+      case pathname === "/analytics":
         return "Analytics";
+      case pathname === "/settings":
+        return "Settings";
+      case pathname === "/search":
+        return "Search";
+      case pathname === "/history":
+        return "History";
       default:
-        return "Projects";
+        return "Dashboard";
     }
+  };
+
+  // Breadcrumb for project detail pages
+  const breadcrumb = () => {
+    if (pathname.startsWith("/projects/") && pathname !== "/projects") {
+      return (
+        <>
+          <Separator
+            orientation="vertical"
+            className="mx-2 data-[orientation=vertical]:h-4"
+          />
+          <Link
+            href="/projects"
+            className="text-[12px] text-muted-foreground hover:text-foreground transition-colors xl:text-sm"
+          >
+            Projects
+          </Link>
+          <span className="text-muted-foreground text-[12px] xl:text-sm">
+            /
+          </span>
+          <span className="text-[12px] font-medium xl:text-sm">Details</span>
+        </>
+      );
+    }
+    return null;
   };
 
   return (
@@ -42,7 +76,17 @@ export function SiteHeader() {
           className="mx-2 data-[orientation=vertical]:h-4"
         />
         <h1 className="font-medium text-[12px] xl:text-base">{header()}</h1>
+        {breadcrumb()}
         <div className="ml-auto flex items-center gap-2">
+          {/* Global Search Button */}
+          <Button variant="outline" size="icon" asChild>
+            <Link href="/search">
+              <Search className="h-[1.2rem] w-[1.2rem]" />
+              <span className="sr-only">Search logs</span>
+            </Link>
+          </Button>
+
+          {/* Theme Toggle */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon">

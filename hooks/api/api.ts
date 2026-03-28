@@ -42,26 +42,21 @@ export const projectApi = {
   },
   getProjects: async (userId: string) => {
     const response = await api.get(`/projects/${userId}`);
-    console.log(response);
     return response.data;
   },
   getProject: async (projectId: string) => {
     const response = await api.get(`/project/${projectId}`);
-    console.log(response);
     return response.data;
   },
 };
 
 export const logApi = {
   getLogs: async (userId: string) => {
-    const id = "clrk123";
     const response = await api.get(`/logs/${userId}`);
-    console.log(response);
     return response.data;
   },
   getProjectLogs: async (projectId: string) => {
     const response = await api.get(`/logs/project/${projectId}`);
-    console.log(response);
     return response.data;
   },
 };

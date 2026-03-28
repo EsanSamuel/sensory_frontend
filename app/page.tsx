@@ -27,7 +27,6 @@ export interface ILog {
 export default function Page() {
   const { user } = useUser();
   const { logs } = useLog(user?.id);
-  console.log("logs:", logs);
   return (
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
