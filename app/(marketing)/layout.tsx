@@ -14,7 +14,48 @@ export default function MarketingLayout({
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
-          <div className="flex items-center gap-4">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <IconActivityHeartbeat className="size-5" />
+            </div>
+            <span className="text-xl font-bold tracking-tight">Sensory</span>
+          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-8">
+            <Link
+              href="#features"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Features
+            </Link>
+            <Link
+              href="/how-it-works"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              How it Works
+            </Link>
+            <Link
+              href="#pricing"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Pricing
+            </Link>
+          </nav>
+
+          {/* Actions & Mobile Nav */}
+          <div className="flex items-center gap-3">
+            {/* Desktop Auth */}
+            <div className="hidden md:flex items-center gap-3">
+              <SignInButton mode="modal">
+                <Button variant="ghost">Log In</Button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <Button>Get Started</Button>
+              </SignUpButton>
+            </div>
+
             {/* Mobile Nav Toggle */}
             <Sheet>
               <SheetTrigger asChild>
@@ -23,7 +64,7 @@ export default function MarketingLayout({
                   <span className="sr-only">Toggle mobile menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[400px] p-6">
+              <SheetContent side="right" className="w-[300px] sm:w-[400px] p-6 border-l">
                 <nav className="flex flex-col gap-4 mt-6">
                   <Link href="/" className="flex items-center gap-2 mb-4">
                     <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -51,48 +92,6 @@ export default function MarketingLayout({
                 </nav>
               </SheetContent>
             </Sheet>
-
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <IconActivityHeartbeat className="size-5" />
-              </div>
-              <span className="text-xl font-bold tracking-tight">Sensory</span>
-            </Link>
-          </div>
-
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link
-              href="#features"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Features
-            </Link>
-            <Link
-              href="/how-it-works"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              How it Works
-            </Link>
-            <Link
-              href="#pricing"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Pricing
-            </Link>
-          </nav>
-
-          {/* Auth Actions */}
-          <div className="hidden md:flex items-center gap-3">
-            <SignInButton mode="modal">
-              <Button variant="ghost">
-                Log In
-              </Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button>Get Started</Button>
-            </SignUpButton>
           </div>
         </div>
       </header>
