@@ -65,20 +65,15 @@ func InitLogger() *logClient.Client {
 
 /* ------------------------------------- */
 
-package logClient
+// In your application code:
 
-import (
-	"fmt"
-	"os"
-)
+var logger = config.InitLogger()
 
-func (c *Client) INFO(msg any) {
-	c.Send("INFO", fmt.Sprint(msg))
-}
-
-func (c *Client) ERROR(msg any) {
-	c.Send("ERROR", fmt.Sprint(msg))
-}`
+logger.INFO(summary)
+logger.DEBUG("Debug detail")
+logger.WARN("Retry limit approaching")
+logger.ERROR("Database connection failed")
+logger.FATAL("Unexpected system crash")`
     },
     {
       id: "02",
