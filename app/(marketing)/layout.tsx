@@ -1,8 +1,9 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { IconActivityHeartbeat } from "@tabler/icons-react";
+import { IconActivityHeartbeat, IconMenu2 } from "@tabler/icons-react";
 import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export default function MarketingLayout({
   children,
@@ -13,16 +14,55 @@ export default function MarketingLayout({
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <IconActivityHeartbeat className="size-5" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">Sensory</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            {/* Mobile Nav Toggle */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <IconMenu2 className="size-5" />
+                  <span className="sr-only">Toggle mobile menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] sm:w-[400px] p-6">
+                <nav className="flex flex-col gap-4 mt-6">
+                  <Link href="/" className="flex items-center gap-2 mb-4">
+                    <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                      <IconActivityHeartbeat className="size-5" />
+                    </div>
+                    <span className="text-xl font-bold tracking-tight">Sensory</span>
+                  </Link>
+                  <Link href="#features" className="text-lg font-medium hover:text-primary">
+                    Features
+                  </Link>
+                  <Link href="/how-it-works" className="text-lg font-medium hover:text-primary">
+                    How it Works
+                  </Link>
+                  <Link href="#pricing" className="text-lg font-medium hover:text-primary">
+                    Pricing
+                  </Link>
+                  <div className="mt-8 flex flex-col gap-3">
+                    <SignInButton mode="modal">
+                      <Button variant="outline" className="w-full">Log In</Button>
+                    </SignInButton>
+                    <SignUpButton mode="modal">
+                      <Button className="w-full">Get Started</Button>
+                    </SignUpButton>
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
+
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2">
+              <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <IconActivityHeartbeat className="size-5" />
+              </div>
+              <span className="text-xl font-bold tracking-tight">Sensory</span>
+            </Link>
+          </div>
 
           {/* Desktop Nav */}
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="hidden md:flex items-center gap-8">
             <Link
               href="#features"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -44,9 +84,9 @@ export default function MarketingLayout({
           </nav>
 
           {/* Auth Actions */}
-          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
             <SignInButton mode="modal">
-              <Button variant="ghost" className="hidden sm:inline-flex">
+              <Button variant="ghost">
                 Log In
               </Button>
             </SignInButton>
