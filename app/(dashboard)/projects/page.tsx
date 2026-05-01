@@ -92,7 +92,7 @@ const Project = () => {
 
     setIsGenerating(true);
     try {
-      const response = await api.post(` /project/api_key/${projectId}  `);
+      const response = await api.post(`/project/api_key/${projectId}`);
       console.log(response.data.apikey);
       setGeneratedApiKey(response.data.apikey);
 
@@ -110,7 +110,7 @@ const Project = () => {
   };
 
   const openApiKeyDialog = (project: Project) => {
-    setSelectedProject(project);
+    setSelectedProject(project);``
     setGeneratedApiKey("");
     setIsApiKeyDialogOpen(true);
   };
