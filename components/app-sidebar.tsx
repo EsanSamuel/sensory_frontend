@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   IconActivity,
   IconAlertTriangle,
+  IconArrowsTransferDown,
   IconChartLine,
   IconClock,
   IconHelp,
@@ -48,6 +49,11 @@ const data = {
       title: "Logs",
       url: "/logs",
       icon: IconAlertTriangle,
+    },
+    {
+      title: "Reverse Proxy",
+      url: "/proxy",
+      icon: IconArrowsTransferDown,
     },
     {
       title: "Analytics",
