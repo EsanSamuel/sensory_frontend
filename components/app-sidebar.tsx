@@ -27,6 +27,7 @@ import {
 import { File, Folder, FolderCheck } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { useAuth } from "@clerk/nextjs";
+import { usePathname } from "next/navigation";
 
 const data = {
   user: {
@@ -86,6 +87,7 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
   const { userId } = useAuth();
   const { user } = useUser(userId!);
   return (
@@ -96,6 +98,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
+              isActive={pathname === "/"}
             >
               <a href="/">
                 <div className="flex size-5 items-center justify-center rounded bg-gradient-to-br bg-blue-500">

@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { useProject } from "@/hooks/useProject";
 import { useUser } from "@clerk/nextjs";
+import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 
 interface NavMainProps {
@@ -43,6 +44,7 @@ interface NavMainProps {
 }
 
 export function NavMain({ items, onCreateProject }: NavMainProps) {
+  const pathname = usePathname();
   const { user } = useUser();
   const { createProject, projects } = useProject("", user?.id);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -171,7 +173,11 @@ export function NavMain({ items, onCreateProject }: NavMainProps) {
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title}>
+              <SidebarMenuButton
+                asChild
+                tooltip={item.title}
+                isActive={pathname === item.url || pathname.startsWith(item.url + "/")}
+              >
                 <Link href={item.url}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
