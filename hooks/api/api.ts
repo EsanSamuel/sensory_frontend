@@ -14,10 +14,9 @@ interface IProject {
 }
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_PROXY_URL,
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
   headers: {
     "Content-Type": "application/json",
-    'X-API-KEY': '1dd6335419c72a1161856a4163f963f2efa5374eaa72840b942d8fc2ee11fe5f'
   },
 });
 

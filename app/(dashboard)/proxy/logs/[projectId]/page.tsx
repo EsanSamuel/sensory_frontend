@@ -8,10 +8,13 @@ import {
   IconPlayerPlay, 
   IconPlayerStop, 
   IconRefresh,
-  IconActivity
+  IconActivity,
+  IconAlertTriangle,
+  IconCircleX
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ProxyLogTable } from "@/components/proxy-log-table";
 import { useProxyLogs } from "@/hooks/useProxyLogs";
 import { useProxyProject } from "@/hooks/useProxyProject";
@@ -24,7 +27,7 @@ export default function ProjectLogsPage() {
   
   const [isLiveTail, setIsLiveTail] = useState(true);
   
-  const { logs, isLoading, refetch } = useProxyLogs(
+  const { logs, isLoading, refetch, isError } = useProxyLogs(
     projectId, 
     isLiveTail ? 5000 : false
   );
@@ -35,13 +38,13 @@ export default function ProjectLogsPage() {
     <div className="flex flex-1 flex-col py-6">
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 px-4 lg:px-6">
-        <div className="flex items-center gap-3">
-          <Link href="/proxy/projects">
+        <div className="flex items-start gap-3">
+          <Link href="/proxy/projects" className="mt-1 md:mt-0">
             <Button variant="ghost" size="icon" className="size-8">
               <IconArrowLeft className="size-4" />
             </Button>
           </Link>
-          <div className="flex flex-1 items-center justify-between">
+          <div className="flex flex-1 flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">{project?.project_name || "Project Logs"}</h1>
@@ -54,7 +57,7 @@ export default function ProjectLogsPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant={isLiveTail ? "default" : "outline"}
                 size="sm"
@@ -98,8 +101,29 @@ export default function ProjectLogsPage() {
         </div>
       )}
 
+      {/* Error Alert */}
+      {isError && (
+        <div className="px-4 mb-6 lg:px-6">
+          <Alert variant="destructive" className="bg-red-500/5 border-red-500/20 text-red-600 dark:text-red-400">
+            <IconAlertTriangle className="size-4" />
+            <AlertTitle>Connection Error</AlertTitle>
+            <AlertDescription className="text-xs opacity-80">
+              Failed to fetch logs from the reverse proxy. This may be due to network issues or the proxy service being temporarily unavailable.
+            </AlertDescription>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => refetch()} 
+              className="mt-3 h-8 bg-transparent border-red-500/20 hover:bg-red-500/10 text-red-600 dark:text-red-400"
+            >
+              Try again
+            </Button>
+          </Alert>
+        </div>
+      )}
+
       {/* Logs Table */}
-      <ProxyLogTable logs={logs} isLoading={isLoading} />
+      <ProxyLogTable logs={logs} isLoading={isLoading} isError={isError} />
     </div>
   );
 }

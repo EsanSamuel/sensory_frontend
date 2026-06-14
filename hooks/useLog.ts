@@ -26,12 +26,20 @@ export const useLog = (
     queryFn: () => logApi.getLogs(userId as string),
     enabled: !!userId,
     refetchInterval,
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 429) return false;
+      return failureCount < 2;
+    },
   });
   const projectLogs = useQuery({
     queryKey: ["logs", projectId],
     queryFn: () => logApi.getProjectLogs(projectId as string),
     enabled: !!projectId,
     refetchInterval,
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 429) return false;
+      return failureCount < 2;
+    },
   });
   return {
     logs: logs.data,

@@ -7,6 +7,7 @@ import {
   IconArrowDown,
   IconChevronDown,
   IconChevronRight,
+  IconAlertTriangle,
 } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import type { ProxyResponseLog } from "@/hooks/api/proxy-api";
 interface ProxyLogTableProps {
   logs?: ProxyResponseLog[];
   isLoading?: boolean;
+  isError?: boolean;
 }
 
 type SortField = "timestamp" | "status_code" | "duration" | "method";
@@ -75,7 +77,7 @@ function formatTimestamp(ts: string) {
   });
 }
 
-export function ProxyLogTable({ logs, isLoading }: ProxyLogTableProps) {
+export function ProxyLogTable({ logs, isLoading, isError }: ProxyLogTableProps) {
   const [methodFilters, setMethodFilters] = useState<Set<string>>(new Set());
   const [sortField, setSortField] = useState<SortField>("timestamp");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -142,10 +144,28 @@ export function ProxyLogTable({ logs, isLoading }: ProxyLogTableProps) {
     );
   }
 
+  if (isError && (!logs || logs.length === 0)) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="size-12 rounded-full bg-red-500/10 flex items-center justify-center">
+            <IconAlertTriangle className="size-6 text-red-500" />
+          </div>
+          <div>
+            <h3 className="font-semibold">Unable to load logs</h3>
+            <p className="text-sm text-muted-foreground max-w-[250px]">
+              The reverse proxy could not be reached. Check your connection or proxy status.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 lg:px-6">
       {/* Filter Bar */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -213,15 +233,15 @@ export function ProxyLogTable({ logs, isLoading }: ProxyLogTableProps) {
                 </div>
               </TableHead>
               <TableHead
-                className="group cursor-pointer select-none"
+                className="group cursor-pointer select-none hidden sm:table-cell"
                 onClick={() => toggleSort("duration")}
               >
                 <div className="flex items-center gap-1">
                   Duration <SortIcon field="duration" />
                 </div>
               </TableHead>
-              <TableHead>Bytes</TableHead>
-              <TableHead>Client IP</TableHead>
+              <TableHead className="hidden md:table-cell">Bytes</TableHead>
+              <TableHead className="hidden lg:table-cell">Client IP</TableHead>
               <TableHead
                 className="group cursor-pointer select-none"
                 onClick={() => toggleSort("timestamp")}
@@ -235,7 +255,7 @@ export function ProxyLogTable({ logs, isLoading }: ProxyLogTableProps) {
           <TableBody>
             {filteredAndSorted.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-32 text-center">
+                <TableCell colSpan={8} className="h-32 text-center pointer-events-none">
                   <p className="text-sm text-muted-foreground">No request logs found</p>
                 </TableCell>
               </TableRow>
@@ -266,7 +286,7 @@ export function ProxyLogTable({ logs, isLoading }: ProxyLogTableProps) {
                         {log.method}
                       </Badge>
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate font-mono text-xs">
+                    <TableCell className="max-w-[100px] sm:max-w-[200px] md:max-w-none truncate font-mono text-xs">
                       {log.url_path}
                       {log.query_params && (
                         <span className="text-muted-foreground">?{log.query_params}</span>
@@ -277,13 +297,13 @@ export function ProxyLogTable({ logs, isLoading }: ProxyLogTableProps) {
                         {log.status_code}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-mono text-xs tabular-nums">
+                    <TableCell className="hidden sm:table-cell font-mono text-xs tabular-nums">
                       {formatDuration(log.duration)}
                     </TableCell>
-                    <TableCell className="font-mono text-xs tabular-nums">
+                    <TableCell className="hidden md:table-cell font-mono text-xs tabular-nums">
                       {formatBytes(log.bytes_written)}
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
+                    <TableCell className="hidden lg:table-cell font-mono text-xs text-muted-foreground">
                       {log.client_ip}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
@@ -293,26 +313,38 @@ export function ProxyLogTable({ logs, isLoading }: ProxyLogTableProps) {
                   {expandedRow === log.response_log_id && (
                     <TableRow key={`${log.response_log_id}-detail`} className="bg-muted/30 hover:bg-muted/30">
                       <TableCell colSpan={8}>
-                        <div className="grid grid-cols-2 gap-x-8 gap-y-2 py-2 text-xs md:grid-cols-4">
+                        <div className="grid grid-cols-2 gap-x-8 gap-y-4 py-3 text-xs md:grid-cols-4">
                           <div>
                             <span className="font-medium text-muted-foreground">Host</span>
-                            <p className="font-mono">{log.host}</p>
+                            <p className="font-mono mt-0.5">{log.host}</p>
                           </div>
                           <div>
                             <span className="font-medium text-muted-foreground">Protocol</span>
-                            <p className="font-mono">{log.protocol}</p>
+                            <p className="font-mono mt-0.5">{log.protocol}</p>
+                          </div>
+                          <div className="sm:hidden">
+                            <span className="font-medium text-muted-foreground">Duration</span>
+                            <p className="font-mono mt-0.5">{formatDuration(log.duration)}</p>
+                          </div>
+                          <div className="md:hidden">
+                            <span className="font-medium text-muted-foreground">Bytes</span>
+                            <p className="font-mono mt-0.5">{formatBytes(log.bytes_written)}</p>
+                          </div>
+                          <div className="lg:hidden">
+                            <span className="font-medium text-muted-foreground">Client IP</span>
+                            <p className="font-mono mt-0.5">{log.client_ip}</p>
                           </div>
                           <div>
                             <span className="font-medium text-muted-foreground">Content-Type</span>
-                            <p className="font-mono">{log.content_type || "—"}</p>
+                            <p className="font-mono mt-0.5">{log.content_type || "—"}</p>
                           </div>
                           <div>
                             <span className="font-medium text-muted-foreground">Referer</span>
-                            <p className="font-mono truncate">{log.referer || "—"}</p>
+                            <p className="font-mono mt-0.5 truncate">{log.referer || "—"}</p>
                           </div>
-                          <div className="col-span-2 md:col-span-4">
+                          <div className="col-span-2 md:col-span-4 border-t pt-2 mt-1">
                             <span className="font-medium text-muted-foreground">User Agent</span>
-                            <p className="font-mono truncate">{log.user_agent || "—"}</p>
+                            <p className="font-mono mt-0.5 break-all">{log.user_agent || "—"}</p>
                           </div>
                         </div>
                       </TableCell>

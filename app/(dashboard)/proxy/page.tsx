@@ -35,7 +35,7 @@ export default function ProxyDashboard() {
   // For the dashboard overview, use an empty array if no project is selected
   const { logs: allLogs } = useProxyLogs(
     projects?.[0]?.project_id,
-    10000,
+    false, // Disable background polling on dashboard to prevent rate limits
   );
 
   const getTimeAgo = (dateString: string) => {
