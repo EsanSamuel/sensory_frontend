@@ -11,6 +11,7 @@ export const useProxyLogs = (
     queryFn: () => proxyProjectApi.getProjectLogs(projectId as string),
     enabled: !!projectId,
     refetchInterval,
+    refetchOnWindowFocus: false, // Prevent redundant requests when switching tabs
   });
 
   return {

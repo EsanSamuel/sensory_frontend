@@ -15,6 +15,7 @@ import {
   IconTerminal2,
   IconArrowRight,
   IconCloudLockOpen,
+  IconArrowsTransferDown,
 } from "@tabler/icons-react";
 
 export default function LandingPage() {
@@ -40,6 +41,12 @@ export default function LandingPage() {
       icon: <IconTerminal2 className="size-6 text-primary" />,
     },
     {
+      title: "Advanced Reverse Proxy",
+      description:
+        "Route traffic to multiple backend services with live request logging and API key protection.",
+      icon: <IconArrowsTransferDown className="size-6 text-primary" />,
+    },
+    {
       title: "Deep Analytics",
       description:
         "Automatically visualize log volumes, error hotspots, and peak activity across all your services.",
@@ -58,15 +65,9 @@ export default function LandingPage() {
       icon: <IconSearch className="size-6 text-primary" />,
     },
     {
-      title: "Secure by Default",
-      description:
-        "Enterprise-grade security with Clerk authentication, RBAC, and encrypted log storage.",
-      icon: <IconLock className="size-6 text-primary" />,
-    },
-    {
       title: "Unlimited Projects",
       description:
-        "Monitor your entire microservice fleet from a single unified dashboard.",
+        "Monitor your entire microservice fleet and proxy traffic from a single unified dashboard.",
       icon: <IconCloudLockOpen className="size-6 text-primary" />,
     },
   ];
@@ -85,15 +86,15 @@ export default function LandingPage() {
             </div>
             
             <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl">
-              Log management that <br className="hidden sm:block" />
+              Logging & Traffic <br className="hidden sm:block" />
               <span className="bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                doesn't suck.
+                reimagined.
               </span>
             </h1>
             
             <p className="max-w-2xl text-lg text-muted-foreground sm:text-xl">
-              Monitor, search, and analyze your application logs in real-time. 
-              Sensory gives you the observability you need to debug faster and sleep better.
+              Monitor logs, proxy traffic, and analyze your application telemetry in real-time. 
+              Sensory gives you the observability you need to debug faster and scale securely.
             </p>
             
             <div className="mt-4 flex flex-col items-center justify-center gap-4 sm:flex-row">

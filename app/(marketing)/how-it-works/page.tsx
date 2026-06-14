@@ -6,9 +6,11 @@ import {
   IconDatabase, 
   IconDeviceDesktopAnalytics,
   IconTerminal2,
-  IconArrowRight
+  IconArrowRight,
+  IconArrowsTransferDown,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
+import { ProxyIntegrationGuide } from "@/components/proxy-integration-guide";
 
 export const metadata = {
   title: "How It Works | Sensory",
@@ -138,6 +140,30 @@ logger.FATAL("Unexpected system crash")`
           </p>
         </>
       ),
+    },
+    {
+      id: "05",
+      title: "Intelligent Reverse Proxy",
+      subtitle: "The Gateway",
+      icon: <IconArrowsTransferDown className="size-8 text-indigo-500" />,
+      description: (
+        <>
+          <p className="mb-4">
+            Sensory provides a built-in <strong>Reverse Proxy</strong> that acts as an intelligent gateway for your microservices. It bridges the gap between raw traffic and observability.
+          </p>
+          <ul className="space-y-4 text-muted-foreground">
+            <li>
+              <strong className="text-foreground">Multi-URL Routing:</strong> Configure a single entry point that dynamically routes traffic to multiple backend services based on your project configuration.
+            </li>
+            <li>
+              <strong className="text-foreground">Full Request/Response Logging:</strong> Unlike standard loggers, the proxy captures the entire lifecycle of every HTTP request, allowing you to debug header mismatches and payload issues instantly.
+            </li>
+            <li>
+              <strong className="text-foreground">API Key Protection:</strong> Secure your backend endpoints with Sensory's API key validation at the edge, ensuring only authorized traffic reaches your internal services.
+            </li>
+          </ul>
+        </>
+      ),
     }
   ];
 
@@ -248,6 +274,25 @@ logger.FATAL("Unexpected system crash")`
                         </div>
                       </div>
                     )}
+                    {step.id === "05" && (
+                      <div className="relative flex flex-col items-center gap-4 w-full max-w-xs">
+                        <div className="flex items-center gap-3">
+                          <div className="size-10 rounded-full border bg-background flex items-center justify-center shadow-sm">
+                            <IconArrowsTransferDown className="size-5 text-indigo-500" />
+                          </div>
+                          <div className="h-px w-8 bg-muted-foreground/30"></div>
+                          <div className="flex flex-col gap-2">
+                             <div className="h-6 w-20 rounded bg-blue-500/10 border border-blue-500/20 text-[8px] flex items-center justify-center font-mono">Backend A</div>
+                             <div className="h-6 w-20 rounded bg-purple-500/10 border border-purple-500/20 text-[8px] flex items-center justify-center font-mono">Backend B</div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 w-full mt-4">
+                           {[1, 2, 3, 4, 5, 6].map(i => (
+                             <div key={i} className="h-1 bg-indigo-500/20 rounded-full"></div>
+                           ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -255,6 +300,9 @@ logger.FATAL("Unexpected system crash")`
           ))}
         </div>
       </section>
+
+      {/* PROXY INTEGRATION GUIDE */}
+      <ProxyIntegrationGuide />
 
       {/* CTA SECTION */}
       <section className="container mx-auto max-w-4xl px-4 mt-12 lg:px-8 text-center border-t pt-16">

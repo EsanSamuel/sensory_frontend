@@ -26,7 +26,7 @@ export default function ProjectLogsPage() {
   
   const { logs, isLoading, refetch } = useProxyLogs(
     projectId, 
-    isLiveTail ? 3000 : false
+    isLiveTail ? 5000 : false
   );
 
   const project = projects?.find((p) => p.project_id === projectId);
@@ -93,7 +93,7 @@ export default function ProjectLogsPage() {
             <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
           </span>
           <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-            Live tailing active — Refreshing every 3 seconds
+            Live tailing active — Refreshing every 5 seconds
           </span>
         </div>
       )}
