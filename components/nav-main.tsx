@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { IconCirclePlusFilled, IconPlus, type Icon } from "@tabler/icons-react";
+import { IconCirclePlusFilled, IconPlus } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
 import {
