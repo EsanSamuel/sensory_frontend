@@ -11,6 +11,7 @@ import {
   IconCopy,
   IconDotsVertical,
   IconKey,
+  IconInfoCircle,
   IconPlus,
   IconRefresh,
   IconServer,
@@ -59,12 +60,21 @@ export default function ProxyProjectsPage() {
   const [isApiKeyDialogOpen, setIsApiKeyDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<ProxyProject | null>(null);
   const [generatedApiKey, setGeneratedApiKey] = useState("");
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+
+  type RouteFormData = {
+    path: string;
+    backends: string;
+  };
 
   const [newProject, setNewProject] = useState({
     name: "",
     description: "",
   });
   const [backendUrls, setBackendUrls] = useState<string[]>([""]);
+  const [routes, setRoutes] = useState<RouteFormData[]>([
+    { path: "", backends: "" },
+  ]);
 
   const addUrlField = () => setBackendUrls([...backendUrls, ""]);
   const removeUrlField = (index: number) => {
@@ -77,10 +87,44 @@ export default function ProxyProjectsPage() {
     setBackendUrls(updated);
   };
 
+  const addRouteField = () =>
+    setRoutes([...routes, { path: "", backends: "" }]);
+
+  const removeRouteField = (index: number) => {
+    if (routes.length <= 1) return;
+    setRoutes(routes.filter((_, i) => i !== index));
+  };
+
+  const updateRoute = (index: number, field: keyof RouteFormData, value: string) => {
+    const updated = [...routes];
+    updated[index] = { ...updated[index], [field]: value };
+    setRoutes(updated);
+  };
+
   const handleCreateProject = async () => {
     const filteredUrls = backendUrls.filter((u) => u.trim() !== "");
-    if (filteredUrls.length === 0) {
-      toast.error("Please add at least one backend URL");
+
+    const routeEntries = routes
+      .map((route) => ({
+        path: route.path.trim(),
+        backends: route.backends
+          .split(",")
+          .map((backend) => backend.trim())
+          .filter(Boolean),
+      }))
+      .filter((route) => route.path || route.backends.length > 0);
+
+    if (filteredUrls.length === 0 && routeEntries.length === 0) {
+      toast.error("Please add at least one backend URL or a route mapping.");
+      return;
+    }
+
+    const hasInvalidRoute = routeEntries.some(
+      (route) => !route.path || route.backends.length === 0
+    );
+
+    if (hasInvalidRoute) {
+      toast.error("Please provide both a path and at least one backend for each route.");
       return;
     }
 
@@ -90,14 +134,21 @@ export default function ProxyProjectsPage() {
         description: newProject.description,
         user_id: user?.id!,
         backend_urls: filteredUrls,
+        routes: routeEntries,
       });
       toast.success("Proxy project created successfully");
       setNewProject({ name: "", description: "" });
       setBackendUrls([""]);
+      setRoutes([{ path: "", backends: "" }]);
       setIsDialogOpen(false);
     } catch (err) {
       toast.error("Failed to create project");
     }
+  };
+
+  const openDetailsDialog = (project: ProxyProject) => {
+    setSelectedProject(project);
+    setIsDetailsDialogOpen(true);
   };
 
   const handleGenerateApiKey = async (projectId: string) => {
@@ -170,14 +221,14 @@ export default function ProxyProjectsPage() {
               New Project
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="w-full max-w-[95vw] sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle>Create Proxy Project</DialogTitle>
               <DialogDescription>
                 Set up a new reverse proxy with your backend service URLs
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="space-y-4 py-4 overflow-y-auto pr-2 max-h-[calc(80vh-18rem)]">
               <div className="space-y-2">
                 <Label htmlFor="proxy-project-name">Project Name</Label>
                 <Input
@@ -204,7 +255,7 @@ export default function ProxyProjectsPage() {
 
               {/* Backend URLs */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <Label>Backend URLs</Label>
                   <Button
                     variant="ghost"
@@ -218,19 +269,19 @@ export default function ProxyProjectsPage() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Add your backend server URLs. Requests will be load-balanced across them.
+                  Add your backend server URLs if you want a default pool. You can also configure routes instead.
                 </p>
                 <div className="space-y-2">
                   {backendUrls.map((url, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="flex size-6 shrink-0 items-center justify-center rounded bg-muted text-[10px] font-medium text-muted-foreground">
+                    <div key={index} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                      <div className="flex h-6 w-6 min-w-[1.5rem] items-center justify-center rounded bg-muted text-[10px] font-medium text-muted-foreground">
                         {index + 1}
                       </div>
                       <Input
                         placeholder="https://api.example.com:8080"
                         value={url}
                         onChange={(e) => updateUrl(index, e.target.value)}
-                        className="font-mono text-sm"
+                        className="min-w-0 flex-1 w-full font-mono text-sm"
                         disabled={isCreating}
                       />
                       {backendUrls.length > 1 && (
@@ -248,8 +299,77 @@ export default function ProxyProjectsPage() {
                   ))}
                 </div>
               </div>
+
+              <div className="space-y-2 pt-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <Label>Routes</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={addRouteField}
+                    className="h-7 gap-1 text-xs"
+                    disabled={isCreating}
+                  >
+                    <IconPlus className="size-3" />
+                    Add Route
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Configure path-based routing rules and the list of backends to use for each route. Separate backends with commas.
+                </p>
+                <div className="space-y-4">
+                  {routes.map((route, index) => (
+                    <div key={index} className="rounded-lg border p-4">
+                      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <span className="text-sm font-medium">Route {index + 1}</span>
+                        {routes.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeRouteField(index)}
+                            disabled={isCreating}
+                          >
+                            <IconX className="size-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-3">
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="space-y-2 min-w-0">
+                            <Label htmlFor={`route-path-${index}`}>Path</Label>
+                            <Input
+                              id={`route-path-${index}`}
+                              placeholder="/api/v1/users"
+                              value={route.path}
+                              onChange={(e) => updateRoute(index, "path", e.target.value)}
+                              className="min-w-0 w-full"
+                              disabled={isCreating}
+                            />
+                          </div>
+                          <div className="space-y-2 min-w-0">
+                            <Label htmlFor={`route-backends-${index}`}>Route Backends</Label>
+                            <Textarea
+                              id={`route-backends-${index}`}
+                              placeholder="https://api1.example.com, https://api2.example.com"
+                              value={route.backends}
+                              onChange={(e) => updateRoute(index, "backends", e.target.value)}
+                              rows={2}
+                              className="min-w-0 w-full"
+                              disabled={isCreating}
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Use comma-separated backend URLs for this route. You can also use the same URLs as your backend list.
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="sticky bottom-0 left-0 z-10 bg-background/95 backdrop-blur-md pt-4">
               <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isCreating}>
                 Cancel
               </Button>
@@ -337,6 +457,12 @@ export default function ProxyProjectsPage() {
                             View Logs
                           </DropdownMenuItem>
                         </Link>
+                        <DropdownMenuItem onClick={() => {
+                          openDetailsDialog(project);
+                        }}>
+                          <IconInfoCircle className="mr-2 size-4" />
+                          View Details
+                        </DropdownMenuItem>
                         {project.api_key && (
                           <DropdownMenuItem
                             onClick={() => copyToClipboard(project.api_key)}
@@ -365,18 +491,23 @@ export default function ProxyProjectsPage() {
                     {/* Backend URLs */}
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">Backends:</span>
-                      <div className="flex flex-wrap gap-1">
-                        {project.backend_urls?.slice(0, 2).map((url, i) => (
-                          <Badge key={i} variant="secondary" className="font-mono text-[10px]">
-                            {new URL(url).host}
-                          </Badge>
-                        ))}
-                        {(project.backend_urls?.length ?? 0) > 2 && (
+                      <span className="text-xs text-foreground font-medium">
+                        {project.backend_urls?.length ?? 0} backend{(project.backend_urls?.length ?? 0) !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+
+                    {/* Routes */}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>Routes:</span>
+                      {project.routes?.length ? (
+                        <>
                           <Badge variant="secondary" className="text-[10px]">
-                            +{project.backend_urls.length - 2} more
+                            {project.routes.length} configured
                           </Badge>
-                        )}
-                      </div>
+                        </>
+                      ) : (
+                        <span>No route mappings</span>
+                      )}
                     </div>
 
                     {/* API Key */}
@@ -545,6 +676,70 @@ export default function ProxyProjectsPage() {
             ) : (
               <Button onClick={() => setIsApiKeyDialogOpen(false)}>Done</Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Project Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="w-full max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Project Details</DialogTitle>
+            <DialogDescription>
+              View backend URLs and route assignments for {selectedProject?.project_name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-semibold">Backends</p>
+                {selectedProject?.backend_urls?.length ? (
+                  <div className="mt-2 grid gap-2">
+                    {selectedProject.backend_urls.map((url) => (
+                      <div key={url} className="rounded border border-border bg-muted px-3 py-2 text-xs font-mono text-foreground">
+                        {url}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No backend URLs configured.</p>
+                )}
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold">Routes</p>
+                {selectedProject?.routes?.length ? (
+                  <div className="mt-2 space-y-3">
+                    {selectedProject.routes.map((route, index) => (
+                      <div key={`${route.path}-${index}`} className="rounded-lg border border-border p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium text-sm">{route.path || "/"}</span>
+                          <Badge variant="secondary" className="text-[10px]">
+                            {route.backends.length} backend{route.backends.length !== 1 ? "s" : ""}
+                          </Badge>
+                        </div>
+                        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                          {route.backends.map((backend) => (
+                            <div key={backend} className="rounded border border-border bg-muted px-3 py-2 text-xs font-mono text-foreground">
+                              {backend}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No route mappings configured.</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

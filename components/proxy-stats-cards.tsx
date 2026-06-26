@@ -84,13 +84,15 @@ export function ProxyStatsCards({ logs, projectCount = 0 }: ProxyStatsCardsProps
 
   return (
     <div className="grid grid-cols-1 gap-4 px-4 sm:grid-cols-2 lg:grid-cols-4 lg:px-6">
-      {stats.map((stat) => (
+      {stats.map((stat) => {
+        const Icon = stat.icon;
+        return (
         <Card key={stat.title} className="relative overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardDescription className="flex items-center gap-1.5 text-xs font-medium">
                 <div className={`rounded-md p-1.5 ${stat.bgColor}`}>
-                  <stat.icon className={`size-3.5 ${stat.color}`} />
+                  <Icon className={`size-3.5 ${stat.color}`} />
                 </div>
                 {stat.title}
               </CardDescription>
@@ -118,7 +120,8 @@ export function ProxyStatsCards({ logs, projectCount = 0 }: ProxyStatsCardsProps
             <p className="text-xs text-muted-foreground">{stat.description}</p>
           </CardHeader>
         </Card>
-      ))}
+      );
+      })}
     </div>
   );
 }

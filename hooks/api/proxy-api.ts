@@ -1,10 +1,16 @@
 import axios from "axios";
 
+export interface ProxyRoute {
+  path: string;
+  backends: string[];
+}
+
 export interface IProxyProject {
   project_name: string;
   description: string;
   user_id: string;
   backend_urls: string[];
+  routes?: ProxyRoute[];
 }
 
 export interface ProxyProject {
@@ -15,6 +21,7 @@ export interface ProxyProject {
   user_id: string;
   api_key: string;
   backend_urls: string[];
+  routes?: ProxyRoute[];
   created_at: string;
   updated_at: string;
 }

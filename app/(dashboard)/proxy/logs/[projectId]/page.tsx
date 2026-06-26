@@ -10,7 +10,9 @@ import {
   IconRefresh,
   IconActivity,
   IconAlertTriangle,
-  IconCircleX
+  IconCircleX,
+  IconChevronDown,
+  IconChevronUp
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +35,7 @@ export default function ProjectLogsPage() {
   );
 
   const project = projects?.find((p) => p.project_id === projectId);
+  const [isRouteOpen, setIsRouteOpen] = useState(true);
 
   return (
     <div className="flex flex-1 flex-col py-6">
@@ -52,9 +55,19 @@ export default function ProjectLogsPage() {
                   Proxy Logs
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Monitoring traffic for project ID: <code className="text-[11px] bg-muted px-1 rounded">{projectId}</code>
-              </p>
+              <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                <span>Monitoring traffic for project ID:</span>
+                <code className="text-[11px] bg-muted px-1 rounded">{projectId}</code>
+                {project?.routes?.length ? (
+                  <span className="rounded-full border border-border px-2 py-1 text-[11px] text-foreground">
+                    {project.routes.length} route{project.routes.length !== 1 ? "s" : ""} configured
+                  </span>
+                ) : (
+                  <span className="rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground">
+                    No routes configured
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -86,6 +99,68 @@ export default function ProjectLogsPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mx-4 mb-6 rounded-lg border border-border bg-background p-4 lg:mx-6">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-semibold">Route configuration</h2>
+            <p className="text-xs text-muted-foreground">
+              {project?.routes?.length ?? 0} route{(project?.routes?.length ?? 0) !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            onClick={() => setIsRouteOpen(!isRouteOpen)}
+          >
+            {isRouteOpen ? (
+              <>
+                <IconChevronUp className="size-4" />
+                Hide Details
+              </>
+            ) : (
+              <>
+                <IconChevronDown className="size-4" />
+                Show Details
+              </>
+            )}
+          </Button>
+        </div>
+
+        {isRouteOpen ? (
+          project?.routes?.length ? (
+            <div className="space-y-3">
+              {project.routes.map((route, index) => (
+                <div key={`${route.path}-${index}`} className="rounded-lg border border-border p-4">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="font-medium text-sm text-foreground">
+                      {route.path || "/"}
+                    </span>
+                    <Badge variant="secondary" className="text-[10px]">
+                      {route.backends.length} backend{route.backends.length !== 1 ? "s" : ""}
+                    </Badge>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {route.backends.map((backend) => (
+                      <div
+                        key={backend}
+                        className="rounded border border-border bg-muted px-3 py-2 text-xs font-mono text-foreground"
+                      >
+                        {backend}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No route mappings have been configured for this project.
+            </p>
+          )
+        ) : null}
       </div>
 
       {/* Live Tail Status Banner */}

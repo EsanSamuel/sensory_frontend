@@ -223,10 +223,10 @@ const Project = () => {
       {/* Projects Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {projects?.map((project: Project) => (
-          <Card
-            key={project._id}
-            className="group relative cursor-pointer transition-all hover:shadow-md"
-          >
+          <Link key={project._id} href={`/projects/${project.project_id}`}>
+            <Card
+              className="group relative cursor-pointer transition-all hover:shadow-md"
+            >
             <CardHeader>
               <div className="mb-3 flex items-start justify-between">
                 <div className="flex-1">
@@ -480,7 +480,8 @@ const Project = () => {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </Card>
+            </Card>
+          </Link>
         ))}
 
         {/* Empty State */}

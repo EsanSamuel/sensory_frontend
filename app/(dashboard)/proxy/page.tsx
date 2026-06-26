@@ -159,12 +159,22 @@ export default function ProxyDashboard() {
                     </div>
 
                     <div className="mt-3 flex items-center justify-between border-t pt-3">
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <IconServer className="size-3.5" />
-                        <span>
-                          {project.backend_urls?.length ?? 0} backend
-                          {(project.backend_urls?.length ?? 0) !== 1 ? "s" : ""}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <IconServer className="size-3.5" />
+                          <span>
+                            {project.backend_urls?.length ?? 0} backend
+                            {(project.backend_urls?.length ?? 0) !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        {project.routes?.length ? (
+                          <div className="flex items-center gap-1.5 rounded-full border border-border px-2 py-1">
+                            <span className="font-medium text-foreground">{project.routes.length}</span>
+                            <span className="text-muted-foreground">route{project.routes.length !== 1 ? "s" : ""}</span>
+                          </div>
+                        ) : (
+                          <div className="text-muted-foreground">No routes</div>
+                        )}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <IconClock className="size-3.5" />
