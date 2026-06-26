@@ -212,7 +212,9 @@ export default function ProjectDetailsPage() {
               </p>
             </div>
           </div>
-          <LogStatsCards logs={projectLogs} />
+          <div className="-mx-4 lg:-mx-6">
+            <LogStatsCards logs={projectLogs} />
+          </div>
         </div>
       </div>
 
@@ -232,23 +234,25 @@ export default function ProjectDetailsPage() {
           </div>
 
           {/* Logs Table */}
-          {projectLogs && projectLogs.length > 0 ? (
-            <div className="overflow-x-auto">
-              <LogDataTable data={projectLogs} />
-            </div>
-          ) : isLoading ? (
-            <Card>
-              <CardHeader>
-                <p className="text-sm text-muted-foreground">Loading logs...</p>
-              </CardHeader>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <p className="text-sm text-muted-foreground">No logs found for this project</p>
-              </CardHeader>
-            </Card>
-          )}
+          <div className="-mx-4 lg:-mx-6">
+            {projectLogs && projectLogs.length > 0 ? (
+              <div className="overflow-x-auto">
+                <LogDataTable data={projectLogs} />
+              </div>
+            ) : isLoading ? (
+              <Card>
+                <CardHeader>
+                  <p className="text-sm text-muted-foreground">Loading logs...</p>
+                </CardHeader>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <p className="text-sm text-muted-foreground">No logs found for this project</p>
+                </CardHeader>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>
