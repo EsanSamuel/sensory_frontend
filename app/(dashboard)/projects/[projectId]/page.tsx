@@ -16,6 +16,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/ca
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { LogDataTable } from "@/components/data-table";
 import { LogExportButton } from "@/components/log-export";
+import { LogStatsCards } from "@/components/log-stat-card";
 import { useProject } from "@/hooks/useProject";
 import { useLog } from "@/hooks/useLog";
 import { useUser } from "@clerk/nextjs";
@@ -198,6 +199,21 @@ export default function ProjectDetailsPage() {
             </div>
           </div>
         </Card>
+      </div>
+
+      {/* Project Analysis Cards */}
+      <div className="mx-auto w-full max-w-7xl px-4 lg:px-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-bold lg:text-2xl">Project Analysis</h2>
+              <p className="text-sm text-muted-foreground">
+                Dashboard-level metrics for this project
+              </p>
+            </div>
+          </div>
+          <LogStatsCards logs={projectLogs} />
+        </div>
       </div>
 
       {/* Logs Section */}
